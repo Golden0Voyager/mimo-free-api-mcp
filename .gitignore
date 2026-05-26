@@ -36,3 +36,6 @@ aistudio.xiaomimimo.com.har
 Thumbs.db
 .vscode/
 .idea/
+# Skill-generated analysis artifacts
+.understand-anything/
+.codegraph/
