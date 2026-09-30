@@ -252,7 +252,8 @@ async function uploadMediaToMimo(base64Data: string, cookie: string, xiaomichatb
         // 3. 注册挂载并换取核心 ID (增加重试机制)
         const getReadyModelForParse = (m: string) => {
             const low = m.toLowerCase();
-            if (low.includes("flash")) {
+            // 旧版 mimo-v2-flash 需要 -studio 后缀；V2.6 系列使用裸 ID
+            if (low.includes("flash") && !low.includes("v2.6")) {
                 return low.endsWith("-studio") ? low : `${low}-studio`;
             }
             if (low === "mimo-v2-omni") return "mimo-v2.5";
@@ -407,13 +408,14 @@ export function createCompletionStream(model: string, messages: any[], convId?: 
     let forceThinking = false;
     let lastMsgId = "0";
 
-    // 🌟 2. 智商升配与模型锁定（识图场景锁定 Omni 以提高解析成功率）
+    // 🌟 2. 智商升配与模型锁定（识图场景锁定 Omni 以提高解析成功率；显式请求 V2.6 时保持用户选择）
+    const prefersV26 = model.toLowerCase().includes("v2.6");
     if (base64Medias.length > 0) {
-        readyModel = "mimo-v2.5"; 
-        logger.info(`[AutoUpgrade] Vision detected, switching to ${readyModel}`);
+        if (!prefersV26) readyModel = "mimo-v2.5";
+        logger.info(`[AutoUpgrade] Vision detected, using ${readyModel}`);
     } else if (req?.body?.tools) {
-        readyModel = "mimo-v2.5";
-        logger.info(`[AutoUpgrade] Tools detected, switching to ${readyModel}`);
+        if (!prefersV26) readyModel = "mimo-v2.5";
+        logger.info(`[AutoUpgrade] Tools detected, using ${readyModel}`);
     }
 
     // 🌟 3. 规范超参
@@ -591,7 +593,8 @@ Current Task: `;
             // 🌟 3. STATION 模型映射优化
             const getStationModel = (original: string) => {
                 const low = original.toLowerCase();
-                if (low.includes("flash")) {
+                // 旧版 mimo-v2-flash 需要 -studio 后缀；V2.6 系列使用裸 ID
+                if (low.includes("flash") && !low.includes("v2.6")) {
                     return low.endsWith("-studio") ? low : `${low}-studio`;
                 }
                 if (low === "mimo-v2-omni") return "mimo-v2.5";
@@ -1140,7 +1143,7 @@ export async function performSearch(query: string, req?: any) {
     const encodedPh = encodeURIComponent(xiaomichatbot_ph);
     const url = `https://aistudio.xiaomimimo.com/open-apis/bot/chat?xiaomichatbot_ph=${encodedPh}`;
     
-    logger.info(`[Search Request] Query: ${query}`);
+    logger.info(`[Search Request] Query: ${query} | Model: ${process.env.MCP_SEARCH_MODEL || "mimo-v2.5-pro"}`);
 
     const payload: any = {
         msgId: uuidv4().replace(/-/g, ''),
@@ -1157,7 +1160,7 @@ export async function performSearch(query: string, req?: any) {
             thinking: { type: "enabled" },
             enableReference: true, 
             webSearchStatus: "enabled",
-            model: "mimo-v2.5-pro", 
+            model: process.env.MCP_SEARCH_MODEL || "mimo-v2.5-pro", 
         },
         multiMedias: []
     };
@@ -1285,7 +1288,7 @@ export async function performVision(query: string, medias: any[], req?: any) {
     const encodedPh = encodeURIComponent(xiaomichatbot_ph);
     const url = `https://aistudio.xiaomimimo.com/open-apis/bot/chat?xiaomichatbot_ph=${encodedPh}`;
     
-    logger.info(`[Vision Request] Query: ${query} | Medias: ${medias.length}`);
+    logger.info(`[Vision Request] Query: ${query} | Medias: ${medias.length} | Model: ${req?.body?.model || process.env.MCP_VISION_MODEL || "mimo-v2.5"}`);
 
     // 1. 处理媒体上传
     const multiMedias: any[] = [];
@@ -1349,7 +1352,7 @@ export async function performVision(query: string, medias: any[], req?: any) {
             if (!mediaCache.has(md5)) isAnyNewMedia = true;
             
             const dataUrl = `data:${mimeType};base64,${base64}`;
-            const mediaObj = await uploadMediaToMimo(dataUrl, cookie, xiaomichatbot_ph, req?.body?.model || "mimo-v2.5");
+            const mediaObj = await uploadMediaToMimo(dataUrl, cookie, xiaomichatbot_ph, req?.body?.model || process.env.MCP_VISION_MODEL || "mimo-v2.5");
             
             if (mediaObj) {
                 let mediaType = "image";
@@ -1394,7 +1397,7 @@ export async function performVision(query: string, medias: any[], req?: any) {
             enableThinking: true,
             thinking: { type: "enabled" },
             webSearchStatus: "disabled",
-            model: req?.body?.model || "mimo-v2.5", 
+            model: req?.body?.model || process.env.MCP_VISION_MODEL || "mimo-v2.5", 
         },
         multiMedias: multiMedias.map((m: any) => ({
             mediaType: m.mediaType,
@@ -1428,7 +1431,8 @@ export async function performVision(query: string, medias: any[], req?: any) {
                 if (event.event === "message") {
                     try {
                         const data = JSON.parse(event.data);
-                        if (data.content) fullContent += data.content;
+                        // V2.6 模型流中会夹杂 NUL 分隔符，统一剔除
+                        if (data.content) fullContent += String(data.content).replace(/\u0000/g, "");
                     } catch (e) {}
                 } else if (event.event === "error") {
                     logger.error(`[Vision API Error Payload] ${event.data}`);
@@ -1530,7 +1534,8 @@ async function performMimoRequest(options: any) {
     const encodedPh = encodeURIComponent(xiaomichatbot_ph);
     const url = `https://aistudio.xiaomimimo.com/open-apis/bot/chat?xiaomichatbot_ph=${encodedPh}`;
     
-    const readyModelWithStudio = model.toLowerCase().includes("flash") && !model.endsWith("-studio") 
+    // 旧版 mimo-v2-flash 需要 -studio 后缀；V2.6 系列使用裸 ID
+    const readyModelWithStudio = model.toLowerCase().includes("flash") && !model.toLowerCase().includes("v2.6") && !model.endsWith("-studio") 
                                 ? `${model}-studio` 
                                 : model;
 
