@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Upstream project / 上游项目
+    url: https://github.com/Fu-Jie/mimo-free-api-mcp
+    about: This repo is a maintained fork — issues about the original implementation may also be reported upstream. / 本仓库是维护中的 fork,原实现相关的问题也可反馈至上游。
