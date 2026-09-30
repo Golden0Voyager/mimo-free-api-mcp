@@ -46,9 +46,9 @@
 项目支持通过环境变量或 API Header 传递凭证。
 
 ### 方式 A：一键式 .env 部署 (推荐)
-在根目录创建 `.env` 文件（可参考 `.env.example`），填入从官网抓取的三段式 Token：
+在根目录创建 `.env` 文件（可参考 `.env.example`），填入从官网获取的三段式 Token：
 ```env
-# 格式: ph.uid.token 或 抓包获取的长字符串
+# 格式: ph.userId.serviceToken
 token=xxxxxxxx.yyyyyyyy.zzzzzzzz
 ```
 
@@ -57,6 +57,40 @@ token=xxxxxxxx.yyyyyyyy.zzzzzzzz
 ```bash
 Authorization: Bearer YOUR_MIMO_TOKEN
 ```
+
+### 📖 新手教程：3 分钟获取 Token
+
+> 前置要求：已注册并登录小米账号，能正常打开 [aistudio.xiaomimimo.com](https://aistudio.xiaomimimo.com)
+
+1. **登录** [aistudio.xiaomimimo.com](https://aistudio.xiaomimimo.com)，进入对话页面。
+2. **打开开发者工具**：按 `F12`（macOS 为 `⌥ + ⌘ + I`），或页面空白处右键 → **检查 / Inspect**。
+3. **进入 Cookie 面板**：点击顶部 **Application**（应用）标签页 → 左侧栏展开 **Cookies** → 点击 `https://aistudio.xiaomimimo.com`。
+   > Firefox 用户：顶部标签为 **存储 / Storage** → 左侧 **Cookie**。
+4. **复制三个值**：在右侧 Cookie 列表中分别找到下面三行，双击 **Value** 列复制其值：
+   | Name（名称） | 说明 |
+   | :--- | :--- |
+   | `xiaomichatbot_ph` | 第一段（以 `==` 结尾的短串） |
+   | `userId` | 第二段（纯数字） |
+   | `serviceToken` | 第三段（很长的串） |
+5. **按顺序拼接**：三段用英文句点 `.` 连接，得到：
+   ```text
+   <xiaomichatbot_ph的值>.<userId的值>.<serviceToken的值>
+   ```
+6. **写入 `.env`**：将拼接结果粘贴到项目根目录 `.env` 的 `token=` 后面，然后重启服务（`docker compose up -d` 或重新运行 `npm start`）。
+
+<details>
+<summary>🔎 Application 面板里找不到 serviceToken？用网络面板抓一次</summary>
+
+1. 开发者工具切到 **Network**（网络）标签页，按 `F5` 刷新页面。
+2. 在请求列表中点击任意一个 `open-apis` 开头的请求。
+3. 在右侧 **Request Headers**（请求标头）中找到 `Cookie:` 那一行，分别复制 `xiaomichatbot_ph=`、`userId=`、`serviceToken=` 后面的值（每段值以 `;` 结束）。
+
+</details>
+
+> [!IMPORTANT]
+> - **Token 会过期**（通常可维持数月）。若所有模型突然返回**空回复**，99% 是 token 过期了——按上述步骤重新抓取并更新 `.env` 即可。
+> - **不要泄露 Token**：它等同你的账号会话凭证。`.env` 已被 `.gitignore` 排除，请勿提交或分享。
+> - 第三段 `serviceToken` 是 `HttpOnly` Cookie，通过 JS 的 `document.cookie` 读不到，必须在上述面板中查看。
 
 ---
 
@@ -120,9 +154,16 @@ docker compose up -d --build
 
 ---
 
-## ⚖️ 声明
+## ⚖️ 免责声明 (Disclaimer)
 
-本项目仅供学术交流，请遵守小米 MiMo 官方用户协议。
+使用本项目前，请务必阅读并理解以下条款：
+
+1. **非官方项目**：本项目与小米公司及其 MiMo 产品**无任何关联**。"MiMo" 相关名称与商标归小米所有。本项目仅通过逆向官方 Web 端接口实现，属于技术学习与研究用途。
+2. **仅供学习研究**：本项目（含全部源码）仅供个人学习、技术研究与学术交流，**严禁用于商业用途**或任何违反法律法规的场景。
+3. **服务稳定性不保证**：官方接口随时可能变更或加固，导致本项目部分或全部功能失效；作者与贡献者不承诺任何可用性与准确性。
+4. **风险自担**：使用本项目（包括抓取与使用 Token）产生的任何后果——包括但不限于账号被限制、风控、封禁——由使用者**自行承担**。
+5. **合规义务**：使用本项目时请遵守小米 MiMo 官方用户协议及您所在地的法律法规；如官方提出要求，本项目将停止维护。
+6. **许可**：本项目代码以 [GPL-3.0](./LICENSE) 协议开源；本项目不附带任何明示或默示的担保。
 
 ---
 
