@@ -154,6 +154,49 @@ docker compose up -d --build
 
 ---
 
+## 🤖 One-shot Deployment Prompt (for AI Agents)
+
+Copy the prompt below to any AI Agent with **terminal execution** (optionally browser control) — Cursor, Claude Code, Cline, etc. It will autonomously complete the full flow: clone, token capture, configuration, build, startup, and verification:
+
+````text
+You are the automated deployment assistant for the mimo-free-api-mcp project. Execute the following phases in order; each phase has explicit completion criteria. On failure, follow the troubleshooting note and retry (max 2 attempts), then report the blocker to the user and stop.
+
+[Phase 0: Environment check]
+- Verify git, docker, and docker compose are available (run docker compose version).
+- If Docker is unavailable, fall back to Node.js: requires Node.js 22+; run npm install and npm run build for the Phase 3 build step. Note bare Node does NOT auto-load .env — export its variables (e.g. export $(grep -v "^#" .env | xargs)) before npm start.
+- Service port: container listens on 8001; host mapping is in docker-compose.yml (default 127.0.0.1:8002->8001). If the port is taken, change the left-side port to a free one.
+
+[Phase 1: Get the code]
+- git clone https://github.com/Golden0Voyager/mimo-free-api-mcp.git and cd into it.
+- Completion criteria: README.md and docker-compose.yml exist.
+
+[Phase 2: Obtain credentials (critical)]
+- Goal: get three cookies of a LOGGED-IN session for domain aistudio.xiaomimimo.com: xiaomichatbot_ph, userId, serviceToken. Note serviceToken is an HttpOnly cookie.
+- Path A (you have browser control, e.g. Playwright/CDP/browser extension): open https://aistudio.xiaomimimo.com (prefer reusing the user's logged-in browser session); if the page shows logged-out, stop and ask the user to sign in with their Xiaomi account in that browser first. Then read the three cookie values via the CDP/Playwright cookie API (which can read HttpOnly).
+- Path B (no browser control): ask the user to follow the "Beginner's Guide: Get a Token in 3 Minutes" section of the README and paste the three cookie values to you.
+- Join the values as <ph>.<userId>.<serviceToken> and write them into .env in the project root: token=<joined> (single line; .env is git-ignored, do not commit it).
+- Security: the token is equivalent to the user's account session; never print it fully in logs or chat.
+- Completion criteria: .env exists with a token= line in three-part format (two dot separators).
+
+[Phase 3: Build and start]
+- Run docker compose up -d --build, wait ~5s, then docker compose ps must show the container Up.
+
+[Phase 4: Verify]
+- GET http://127.0.0.1:<host-port>/v1/models — the returned data list must contain mimo-v2.6-pro.
+- POST http://127.0.0.1:<host-port>/v1/chat/completions with body: {"model":"mimo-v2.6-pro","stream":false,"messages":[{"role":"user","content":"reply ok only"}]}
+- Success criteria: HTTP 200 and non-empty choices[0].message.content.
+- Troubleshooting: empty content or 401 in container logs → token expired or wrong, return to Phase 2; connection refused → check port mapping and container status; backend replies "model name error" → make sure the requested model ID matches /v1/models.
+
+[Phase 5: Report]
+- Report to the user: service URL, model list from /v1/models, the test reply content, and how to refresh the token when it expires (repeat Phase 2, then restart the container).
+- Bonus: if the user wants MCP integration, the MCP endpoint is http://127.0.0.1:<host-port>/mcp with header Authorization: Bearer <token>.
+````
+
+> [!TIP]
+> Phase 2 depends on **the user's logged-in Xiaomi browser session**. Agents without browser control will ask you for the three cookie values here — follow the "Beginner's Guide" above to copy them.
+
+---
+
 ## ⚖️ Disclaimer
 
 Please read and understand the following terms before using this project:
