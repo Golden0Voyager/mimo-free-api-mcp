@@ -154,6 +154,49 @@ docker compose up -d --build
 
 ---
 
+## 🤖 一键部署 Prompt（交给 AI Agent 执行）
+
+把下面这段 Prompt 复制给任意具备**终端执行**能力（可选：浏览器控制）的 AI Agent（Cursor、Claude Code、Cline 等），它将自主完成克隆、抓取 Token、配置、构建、启动与验证的全套工作：
+
+````text
+你是 mimo-free-api-mcp 项目的自动化部署助手。请按以下阶段依次执行，每个阶段有明确的完成标准；任何一步失败，按对应排障指引处理后再重试，最多重试 2 次，仍失败则向用户报告卡点并停止。
+
+【阶段 0：环境检查】
+- 确认 git、docker、docker compose 均可用（执行 docker compose version 验证）。
+- 若 Docker 不可用，改用 Node.js 路线：需要 Node.js 22+，执行 npm install 与 npm run build 替代阶段 3 的构建部分；注意裸 Node 不会自动读取 .env，启动前需将 .env 中的变量导出为环境变量（如 export $(grep -v "^#" .env | xargs)）后再 npm start。
+- 确定服务端口：默认容器内 8001，宿主机映射见 docker-compose.yml（默认 127.0.0.1:8002->8001）。若端口被占用，修改 docker-compose.yml 左侧端口为空闲端口。
+
+【阶段 1：获取代码】
+- git clone https://github.com/Golden0Voyager/mimo-free-api-mcp.git 并进入项目目录。
+- 完成标准：README.md 与 docker-compose.yml 存在。
+
+【阶段 2：获取凭证（关键）】
+- 目标：取得域名 aistudio.xiaomimimo.com 下【已登录】会话的三个 Cookie：xiaomichatbot_ph、userId、serviceToken。注意 serviceToken 是 HttpOnly Cookie。
+- 路径 A（你具备浏览器控制能力，如 Playwright/CDP/浏览器扩展）：打开 https://aistudio.xiaomimimo.com（优先复用用户已登录的浏览器会话）；若页面显示未登录，停止并请用户先在该浏览器中登录小米账号。然后用 CDP/Playwright 的 Cookie 读取接口（可读取 HttpOnly）获取上述三个 Cookie 的值。
+- 路径 B（无浏览器能力）：请用户自行按项目 README 中「新手教程：3 分钟获取 Token」的步骤，从开发者工具复制三个 Cookie 值给你。
+- 将三个值按 <ph>.<userId>.<serviceToken> 拼接，写入项目根目录的 .env 文件：token=<拼接结果>（单行；.env 已被 .gitignore 排除，不要提交）。
+- 安全要求：Token 等同账号会话凭证，不要在日志或对话中完整输出。
+- 完成标准：.env 存在且 token= 行格式为三段式（两个英文句点分隔）。
+
+【阶段 3：构建与启动】
+- 执行 docker compose up -d --build，等待约 5 秒后执行 docker compose ps 确认容器状态为 Up。
+
+【阶段 4：验证】
+- GET http://127.0.0.1:<宿主机端口>/v1/models：返回的 data 列表应包含 mimo-v2.6-pro。
+- POST http://127.0.0.1:<宿主机端口>/v1/chat/completions，请求体：{"model":"mimo-v2.6-pro","stream":false,"messages":[{"role":"user","content":"只回答ok"}]}
+- 成功标准：HTTP 200 且 choices[0].message.content 非空。
+- 排障：若 content 为空字符串或容器日志出现 401 → token 过期或错误，回到阶段 2 重新抓取；若连接被拒绝 → 检查端口映射与容器状态；若后端报「模型名称错误」→ 确认请求的 model ID 与 /v1/models 列表一致。
+
+【阶段 5：收尾报告】
+- 向用户报告：服务地址、/v1/models 返回的模型列表、测试对话的返回内容、以及日后 token 过期时的更新方法（重复阶段 2 后重启容器）。
+- 附加：如用户需要 MCP 集成，提示 MCP 端点为 http://127.0.0.1:<宿主机端口>/mcp，需在 MCP 客户端配置 Authorization: Bearer <token>。
+````
+
+> [!TIP]
+> 阶段 2 依赖**用户已登录小米账号的浏览器会话**。没有浏览器控制能力的 Agent 会在此处向你索要三个 Cookie 值——照着上文「新手教程」复制即可。
+
+---
+
 ## ⚖️ 免责声明 (Disclaimer)
 
 使用本项目前，请务必阅读并理解以下条款：
