@@ -1,19 +1,20 @@
-# MiMo Free API MCP🚀 (V2.5 Series)
+# MiMo Free API MCP🚀 (V2.5 + V2.6 Series)
 
 English | [简体中文](./README.md)
 
 
-> An advanced OpenAI-compatible gateway + native MCP plugin integration based on the reverse engineering of the official Xiaomi Large Model (MiMo) website ([aistudio.xiaomimimo.com](https://aistudio.xiaomimimo.com)). Now fully adapted to the **MiMo V2.5 Multimodal** series, supporting the **Thinking (Chain of Thought) protocol** and **Omni (Multimodal) interaction**.
+> An advanced OpenAI-compatible gateway + native MCP plugin integration based on the reverse engineering of the official Xiaomi Large Model (MiMo) website ([aistudio.xiaomimimo.com](https://aistudio.xiaomimimo.com)). Now fully adapted to the **MiMo V2.5 Multimodal** series, with newly added support for the **MiMo V2.6** series, supporting the **Thinking (Chain of Thought) protocol** and **Omni (Multimodal) interaction**.
 
 ---
 
-## 🏗️ Core Features (V2.5 Features)
+## 🏗️ Core Features (V2.5 + V2.6 Features)
 
 1.  **V2.5 Multimodal Adaptation**: Deep integration of `mimo-v2.5` and `mimo-v2.5-pro` models, supporting complex analysis of native images, videos, and audio.
-2.  **Thinking Protocol Alignment**: Perfectly supports the latest official Chain of Thought (Reasoning) protocol. Stream output automatically includes `reasoning_content`, authentically restoring the AI's thinking process.
-3.  **Transparent Upgrade Routing**: Maintains compatibility with the V2 era. Requests for `mimo-v2-omni` are smoothly routed to `mimo-v2.5`, and `mimo-v2-pro` to `mimo-v2.5-pro`.
-4.  **Environmental Token Configuration**: Supports one-click deployment via the `token` environment variable (format: `ph.uid.token`) in `.env`.
-5.  **Native MCP Server**: Integrated with the latest MCP standards. Empowers clients like Claude and Cursor with native **web search (`search`)** and **visual analysis (`vision`)** capabilities.
+2.  **New V2.6 Support**: Adds the `mimo-v2.6-pro` (flagship reasoning) and `mimo-v2.6-flash` (ultra-fast lightweight) model IDs, ready to use directly; V2.5 remains the default model.
+3.  **Thinking Protocol Alignment**: Perfectly supports the latest official Chain of Thought (Reasoning) protocol. Stream output automatically includes `reasoning_content`, authentically restoring the AI's thinking process.
+4.  **Transparent Upgrade Routing**: Maintains compatibility with the V2 era. Requests for `mimo-v2-omni` are smoothly routed to `mimo-v2.5`, and `mimo-v2-pro` to `mimo-v2.5-pro`.
+5.  **Environmental Token Configuration**: Supports one-click deployment via the `token` environment variable (format: `ph.uid.token`) in `.env`.
+6.  **Native MCP Server**: Integrated with the latest MCP standards. Empowers clients like Claude and Cursor with native **web search (`search`)** and **visual analysis (`vision`)** capabilities.
 
 ---
 
@@ -21,14 +22,17 @@ English | [简体中文](./README.md)
 
 | Model ID | Base Capability | Thinking (Reasoning) | Core Advantages |
 | :--- | :--- | :--- | :--- |
-| `mimo-v2.5` | **Multimodal Flagship** | ✅ Enabled by default | Best for visual, audio, and multimodal understanding |
+| `mimo-v2.6-pro` | **V2.6 Flagship Reasoning** 🆕 | ✅ Enabled by default | Trillion-parameter flagship, strongest reasoning and agent capabilities |
+| `mimo-v2.6-flash` | **V2.6 Ultra-fast Lightweight** 🆕 | 🔁 Native reasoning (always outputs `reasoning_content`) | Fast response, hybrid reasoning architecture |
+| `mimo-v2.5` | **Multimodal Flagship** (default model) | ✅ Enabled by default | Best for visual, audio, and multimodal understanding |
 | `mimo-v2.5-pro` | **Inference Enhanced** | ✅ Enabled by default | Rigorous logic, strongest search, and long-text analysis |
 | `mimo-v2-flash` | **Ultra-fast Lightweight** | Optional (via suffix) | Millisecond response, ideal for simple dialogue and translation |
 | `mimo-v2-omni` | (Compatibility ID) | ✅ (Routed to 2.5) | Compatible with legacy V2-Omni clients |
 | `mimo-v2-pro` | (Compatibility ID) | ✅ (Routed to 2.5-pro) | Compatible with legacy V2-Pro clients |
 
 > [!TIP]
-> **Force Enable Thinking**: You can force activate the reasoning chain for any model by adding the `-thinking` suffix to the Model ID (e.g., `mimo-v2-flash-thinking`).
+> **Using V2.6**: Simply pass `model: "mimo-v2.6-pro"` or `"mimo-v2.6-flash"` in your request — vision and web search are verified working; requests explicitly specifying V2.6 keep V2.6 in vision/tool scenarios instead of being downgraded, while requests without a model still auto-upgrade to `mimo-v2.5` (identical behavior to previous versions).
+> **MCP Tool Model Configuration**: You can set `MCP_SEARCH_MODEL` / `MCP_VISION_MODEL` in `.env` to choose the models used by the `search` / `vision` tools (defaults: `mimo-v2.5-pro` / `mimo-v2.5`).
 
 > [!WARNING]
 > **Tool Calling Limitation**: Native Function Calling is currently extremely unstable and **cannot be reliably used in Agents (e.g., AutoGPT, LangChain Agents)**. It is recommended for use only in dialogue, visual analysis, or via the MCP plugin in supported clients (e.g., Claude/Cursor).

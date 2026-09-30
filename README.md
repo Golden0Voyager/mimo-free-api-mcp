@@ -1,19 +1,20 @@
-# MiMo Free API MCP🚀 (V2.5 Series)
+# MiMo Free API MCP🚀 (V2.5 + V2.6 Series)
 
 [English](./README_EN.md) | 简体中文
 
 
-> 基于小米大模型（MiMo）官方网站（[aistudio.xiaomimimo.com](https://aistudio.xiaomimimo.com)）逆向构建的高级 OpenAI 兼容网关 + 原生 MCP 插件集成。现已全量适配 **MiMo V2.5 全模态** 系列，支持 **Thinking (思维链) 协议** 与 **Omni (全模态) 交互**。
+> 基于小米大模型（MiMo）官方网站（[aistudio.xiaomimimo.com](https://aistudio.xiaomimimo.com)）逆向构建的高级 OpenAI 兼容网关 + 原生 MCP 插件集成。现已全量适配 **MiMo V2.5 全模态** 系列，并新增 **MiMo V2.6** 系列支持，支持 **Thinking (思维链) 协议** 与 **Omni (全模态) 交互**。
 
 ---
 
-## 🏗️ 核心特性 (V2.5 Features)
+## 🏗️ 核心特性 (V2.5 + V2.6 Features)
 
 1.  **V2.5 全模态适配**: 深度集成 `mimo-v2.5` 与 `mimo-v2.5-pro` 模型，支持原生图像、视频、音频的复杂分析。
-2.  **Thinking 协议对齐**: 完美支持官方最新的思维链 (Reasoning) 协议。流式输出中自动包含 `reasoning_content`，真实还原 AI 思考过程。
-3.  **透明升级路由**: 保持对 V2 时代的兼容。请求 `mimo-v2-omni` 会自动平滑路由至 `mimo-v2.5`，`mimo-v2-pro` 会路由至 `mimo-v2.5-pro`。
-4.  **环境化 Token 配置**: 支持在 `.env` 中通过 `token` 环境变量（格式：`ph.uid.token`）完成一键部署。
-5.  **Native MCP Server**: 集成最新 MCP 标准。赋予 Claude / Cursor 等客户端原生的 **联网搜索 (`search`)** 与 **视觉分析 (`vision`)** 能力。
+2.  **V2.6 新增支持**: 新增 `mimo-v2.6-pro`（旗舰推理）与 `mimo-v2.6-flash`（极速轻量）两个模型 ID，可直接请求使用；V2.5 仍为默认模型。
+3.  **Thinking 协议对齐**: 完美支持官方最新的思维链 (Reasoning) 协议。流式输出中自动包含 `reasoning_content`，真实还原 AI 思考过程。
+4.  **透明升级路由**: 保持对 V2 时代的兼容。请求 `mimo-v2-omni` 会自动平滑路由至 `mimo-v2.5`，`mimo-v2-pro` 会路由至 `mimo-v2.5-pro`。
+5.  **环境化 Token 配置**: 支持在 `.env` 中通过 `token` 环境变量（格式：`ph.uid.token`）完成一键部署。
+6.  **Native MCP Server**: 集成最新 MCP 标准。赋予 Claude / Cursor 等客户端原生的 **联网搜索 (`search`)** 与 **视觉分析 (`vision`)** 能力。
 
 ---
 
@@ -21,14 +22,17 @@
 
 | 模型 ID | 基座能力 | 推理思维链 (Thinking) | 核心优势 |
 | :--- | :--- | :--- | :--- |
-| `mimo-v2.5` | **全模态旗舰** | ✅ 默认开启 | 视觉、音频、多模态理解最佳方案 |
+| `mimo-v2.6-pro` | **V2.6 旗舰推理版** 🆕 | ✅ 默认开启 | 万亿参数旗舰，最强推理与 Agent 能力 |
+| `mimo-v2.6-flash` | **V2.6 极速轻量版** 🆕 | 🔁 原生思维链（始终输出 `reasoning_content`） | 快速响应，混合推理架构 |
+| `mimo-v2.5` | **全模态旗舰**（默认模型） | ✅ 默认开启 | 视觉、音频、多模态理解最佳方案 |
 | `mimo-v2.5-pro` | **推理增强版** | ✅ 默认开启 | 逻辑严密、最强搜索与长文本分析 |
 | `mimo-v2-flash` | **极速轻量版** | 可选 (后缀激活) | 毫秒级响应，适合简单对话与翻译 |
 | `mimo-v2-omni` | (兼容 ID) | ✅ (路由至 2.5) | 兼容旧版 V2-Omni 客户端 |
 | `mimo-v2-pro` | (兼容 ID) | ✅ (路由至 2.5-pro) | 兼容旧版 V2-Pro 客户端 |
 
 > [!TIP]
-> **强制开启 Thinking**：您可以通过为模型 ID 添加 `-thinking` 后缀（如 `mimo-v2-flash-thinking`）强制激活任何模型的思维链模式。
+> **使用 V2.6**：在请求中直接传 `model: "mimo-v2.6-pro"` 或 `"mimo-v2.6-flash"` 即可，视觉识别与联网搜索均已实测可用；显式指定 V2.6 的请求在带图/带工具场景下保持 V2.6 不降级，未指定模型的请求仍自动升配至 `mimo-v2.5`（行为与旧版本一致）。
+> **MCP 工具模型配置**：可在 `.env` 中通过 `MCP_SEARCH_MODEL` / `MCP_VISION_MODEL` 指定 `search` / `vision` 工具使用的模型（默认分别为 `mimo-v2.5-pro` / `mimo-v2.5`）。
 
 > [!WARNING]
 > **工具调用 (Tool Calling) 限制**：目前模型原生工具调用（Function Calling）极度不稳定，**无法在 Agent（如 AutoGPT、LangChain Agent 等）中可靠使用**。建议仅作为对话、视觉分析或通过 MCP 插件在支持的客户端（如 Claude/Cursor）中使用。

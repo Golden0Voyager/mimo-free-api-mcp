@@ -39,3 +39,6 @@ Thumbs.db
 # Skill-generated analysis artifacts
 .understand-anything/
 .codegraph/
+
+# git-feature worktrees
+.worktrees/
