@@ -1,0 +1,45 @@
+name: Bug Report / 问题反馈
+description: Report a problem with the API gateway or MCP server / 反馈网关或 MCP 服务的问题
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue! / 感谢反馈！
+        Tip: empty replies from all models usually mean the token in `.env` has expired — please re-capture a fresh token from aistudio.xiaomimimo.com first.
+        提示：所有模型都返回空回复通常是 `.env` 中的 token 已过期，请先重新抓取 token。
+  - type: dropdown
+    id: model
+    attributes:
+      label: Which model? / 涉及哪个模型?
+      options:
+        - mimo-v2.6-pro
+        - mimo-v2.6-flash
+        - mimo-v2.5 / mimo-v2.5-pro
+        - legacy mimo-v2-* (compatibility ID)
+        - All models / 所有模型
+    validations:
+      required: true
+  - type: dropdown
+    id: feature
+    attributes:
+      label: Which feature? / 涉及哪个功能?
+      options:
+        - Chat (text) / 文本对话
+        - Vision (image/video/audio) / 视觉识别
+        - Web search / 联网搜索
+        - MCP tools (search/vision) / MCP 工具
+        - Deployment / Docker / 部署
+        - Other / 其他
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs / 相关日志
+      description: '`docker logs mimo-free-api-mcp --since 10m` 的输出（注意先抹去 token 等敏感信息）'
+      render: shell
+  - type: textarea
+    id: context
+    attributes:
+      label: Steps to reproduce / 复现步骤

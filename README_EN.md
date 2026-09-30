@@ -1,5 +1,7 @@
 # MiMo Free API MCP🚀 (V2.5 + V2.6 Series)
 
+[![CI](https://github.com/Golden0Voyager/mimo-free-api-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Golden0Voyager/mimo-free-api-mcp/actions/workflows/ci.yml) [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](./LICENSE) [![Node](https://img.shields.io/badge/node-22%2B-green.svg)](https://nodejs.org)
+
 English | [简体中文](./README.md)
 
 
@@ -121,3 +123,9 @@ docker compose up -d --build
 ## ⚖️ Disclaimer
 
 This project is for academic exchange only. Please comply with the official Xiaomi MiMo user agreement.
+
+---
+
+## 🙏 Acknowledgements
+
+This project is built on top of [Fu-Jie/mimo-free-api-mcp](https://github.com/Fu-Jie/mimo-free-api-mcp) — credits to the original author for the core reverse engineering and implementation. This repository adapts the MiMo V2.6 series, fixes V2.6 Flash model routing, and adds CI quality gates as community maintenance.
