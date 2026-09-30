@@ -46,9 +46,9 @@ English | [简体中文](./README.md)
 The project supports passing credentials via environment variables or API headers.
 
 ### Method A: One-click .env Deployment (Recommended)
-Create a `.env` file in the root directory (refer to `.env.example`) and fill in the Token captured from the official website:
+Create a `.env` file in the root directory (refer to `.env.example`) and fill in the three-part Token obtained from the official website:
 ```env
-# Format: ph.uid.token or long encrypted string
+# Format: ph.userId.serviceToken
 token=xxxxxxxx.yyyyyyyy.zzzzzzzz
 ```
 
@@ -57,6 +57,40 @@ Use the Bearer Token directly during API calls:
 ```bash
 Authorization: Bearer YOUR_MIMO_TOKEN
 ```
+
+### 📖 Beginner's Guide: Get a Token in 3 Minutes
+
+> Prerequisite: registered Xiaomi account, and [aistudio.xiaomimimo.com](https://aistudio.xiaomimimo.com) opens normally.
+
+1. **Log in** to [aistudio.xiaomimimo.com](https://aistudio.xiaomimimo.com).
+2. **Open DevTools**: press `F12` (macOS: `⌥ + ⌘ + I`), or right-click the page → **Inspect**.
+3. **Open the Cookies panel**: click the **Application** tab → expand **Cookies** in the sidebar → click `https://aistudio.xiaomimimo.com`.
+   > Firefox: the tab is **Storage** → **Cookies** in the sidebar.
+4. **Copy three values** — find these rows in the cookie list and double-click the **Value** column to copy:
+   | Name | Description |
+   | :--- | :--- |
+   | `xiaomichatbot_ph` | Part 1 (short string ending with `==`) |
+   | `userId` | Part 2 (plain digits) |
+   | `serviceToken` | Part 3 (very long string) |
+5. **Join them** with dots in order:
+   ```text
+   <xiaomichatbot_ph>.<userId>.<serviceToken>
+   ```
+6. **Write to `.env`**: paste the joined string after `token=` in the project's `.env`, then restart the service (`docker compose up -d` or `npm start`).
+
+<details>
+<summary>🔎 Can't find serviceToken in the Application panel? Grab it from the Network panel</summary>
+
+1. Switch DevTools to the **Network** tab and press `F5` to reload.
+2. Click any request starting with `open-apis`.
+3. In **Request Headers**, find the `Cookie:` line and copy the values after `xiaomichatbot_ph=`, `userId=`, and `serviceToken=` (each value ends at the next `;`).
+
+</details>
+
+> [!IMPORTANT]
+> - **Tokens expire** (usually lasting months). If all models suddenly return **empty replies**, it's 99% an expired token — re-capture and update `.env`.
+> - **Never share your Token**: it is equivalent to your account session. `.env` is excluded by `.gitignore`; do not commit or share it.
+> - The third part, `serviceToken`, is an `HttpOnly` cookie — invisible to `document.cookie`; use the panels above.
 
 ---
 
@@ -122,7 +156,14 @@ docker compose up -d --build
 
 ## ⚖️ Disclaimer
 
-This project is for academic exchange only. Please comply with the official Xiaomi MiMo user agreement.
+Please read and understand the following terms before using this project:
+
+1. **Not an official project**: This project has **no affiliation** with Xiaomi Inc. or its MiMo products. The "MiMo" name and trademarks belong to Xiaomi. It is implemented by reverse-engineering the official web interface, for technical learning and research purposes only.
+2. **Learning & research only**: The project (including all source code) is for personal learning, technical research, and academic exchange. **Commercial use** and any illegal use are strictly prohibited.
+3. **No stability guarantee**: The official interface may change or be hardened at any time, breaking part or all of this project's functionality; the author and contributors make no promises regarding availability or accuracy.
+4. **Use at your own risk**: Any consequences of using this project (including capturing and using Tokens) — including but not limited to account restrictions, risk control, or bans — are **borne by the user**.
+5. **Compliance**: Please comply with the official Xiaomi MiMo user agreement and applicable laws and regulations; upon official request, this project will cease maintenance.
+6. **License**: The code is open-sourced under [GPL-3.0](./LICENSE); the project comes with no warranty, express or implied.
 
 ---
 
