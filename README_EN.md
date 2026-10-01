@@ -146,6 +146,25 @@ Please add the following configuration to `claude_desktop_config.json`:
 
 ## 🐳 Quick Deployment
 
+### Option 1: Prebuilt image (no build, recommended)
+
+Images are published on GHCR for both amd64 and arm64 — no need to clone or build locally:
+
+```bash
+docker run -d --name mimo-free-api-mcp \
+  --restart always \
+  -p 8001:8001 \
+  -e token=<your-token> \
+  ghcr.io/golden0voyager/mimo-free-api-mcp:v1.3.0
+```
+
+> [!NOTE]
+> - **The image contains no credentials**: every user must inject **their own** token via `-e token=` (see the "Beginner's Guide" above), or the split form `-e xiaomichatbot_ph=xxx -e userId=xxx -e xiaomichatbot_serviceToken=xxx`.
+> - When the token expires there is no need to re-pull the image — just remove and re-run with a fresh token: `docker rm -f mimo-free-api-mcp`.
+> - See all published versions on the [package page](https://github.com/Golden0Voyager/mimo-free-api-mcp/pkgs/container/mimo-free-api-mcp); a `latest` tag tracks the mainline.
+
+### Option 2: Build from source (for customization)
+
 ```bash
 # 1. Ensure .env is configured with the token
 # 2. Start the container

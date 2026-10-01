@@ -146,6 +146,25 @@ Authorization: Bearer YOUR_MIMO_TOKEN
 
 ## 🐳 快速部署 (Deployment)
 
+### 方式一：预构建镜像（免构建，推荐）
+
+镜像发布于 GHCR，支持 amd64 / arm64 双架构，无需克隆源码和本地构建：
+
+```bash
+docker run -d --name mimo-free-api-mcp \
+  --restart always \
+  -p 8001:8001 \
+  -e token=<你的Token> \
+  ghcr.io/golden0voyager/mimo-free-api-mcp:v1.3.0
+```
+
+> [!NOTE]
+> - **镜像本身不包含任何凭证**：每个用户必须通过 `-e token=` 注入**自己的** Token（获取方式见上文「新手教程」），也可以改用 `-e xiaomichatbot_ph=xxx -e userId=xxx -e xiaomichatbot_serviceToken=xxx` 三段式注入。
+> - Token 过期后无需重新拉镜像，重启容器换新 token 即可：`docker rm -f mimo-free-api-mcp` 后用新值重跑上面的命令。
+> - 全部可用版本见[镜像发布页](https://github.com/Golden0Voyager/mimo-free-api-mcp/pkgs/container/mimo-free-api-mcp)；也可使用 `latest` 标签跟随主线。
+
+### 方式二：源码构建（适合需要自定义的开发者）
+
 ```bash
 # 1. 确保 .env 已配置 token
 # 2. 启动容器
